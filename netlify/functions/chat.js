@@ -1,15 +1,21 @@
 // netlify/functions/chat.js
 exports.handler = async function (event, context) {
-    // Liberar apenas requisições POST
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, body: "Método Não Permitido" };
+        return { statusCode: 405, body: JSON.stringify({ error: "Método Não Permitido" }) };
     }
 
     try {
         const body = JSON.parse(event.body);
-        
-        // Pega a chave diretamente das variáveis de ambiente seguras do Netlify
         const apiKey = process.env.OPENROUTER_API_KEY;
+
+        if (!apiKey) {
+            console.error("ERRO: A variável de ambiente OPENROUTER_API_KEY não foi configurada no painel do Netlify.");
+            return {
+                statusCode: 500,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ error: "Chave de API ausente nas configurações do servidor." })
+            };
+        }
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -25,6 +31,17 @@ exports.handler = async function (event, context) {
             })
         });
 
+        // Captura o status e o texto bruto se a resposta não for bem-sucedida (ex: 401, 400, 403)
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Erro retornado pelo OpenRouter (Status ${response.status}):`, errorText);
+            return {
+                statusCode: response.status,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ error: `Erro na API externa: ${errorText}` })
+            };
+        }
+
         const data = await response.json();
 
         return {
@@ -33,9 +50,11 @@ exports.handler = async function (event, context) {
             body: JSON.stringify(data)
         };
     } catch (error) {
+        console.error("Erro interno capturado na função:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: "Erro interno no proxy da função" })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ error: error.message || "Erro interno no servidor proxy" })
         };
     }
 };
