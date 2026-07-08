@@ -17,6 +17,9 @@ exports.handler = async function (event, context) {
             };
         }
 
+        // Alterado o fallback padrão explicitamente para a versão gratuita (:free)
+        const selectedModel = body.model || "google/gemini-2.5-flash:free";
+
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -25,13 +28,12 @@ exports.handler = async function (event, context) {
                 "X-Title": "Concessionaria Francisco IA"
             },
             body: JSON.stringify({
-                model: body.model || "google/gemini-2.5-flash",
+                model: selectedModel,
                 messages: body.messages,
                 temperature: 0.7
             })
         });
 
-        // Captura o status e o texto bruto se a resposta não for bem-sucedida (ex: 401, 400, 403)
         if (!response.ok) {
             const errorText = await response.text();
             console.error(`Erro retornado pelo OpenRouter (Status ${response.status}):`, errorText);
