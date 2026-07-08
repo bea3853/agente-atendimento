@@ -1,8 +1,7 @@
 // config.js
 const CONFIG = {
-    // Agora apontamos para a nossa rota interna do Netlify que criamos no netlify.toml
     BASE_URL: "/.netlify/functions/chat", 
-    MODEL: "google/gemini-2.5-flash"
+    MODEL: "google/gemini-2.5-flash:free" // Versão 100% gratuita da Google no OpenRouter
 };
 
 export default CONFIG;
