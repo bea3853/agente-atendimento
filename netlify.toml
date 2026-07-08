@@ -2,13 +2,11 @@
   publish = "."
   functions = "netlify/functions"
 
-# Força o redirecionamento caso a rota direta falhe
+[functions]
+  node_bundle = true
+
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+  force = true
